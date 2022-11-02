@@ -35,7 +35,8 @@ impl Endpoint for ProxyEndpoint {
         println!( "Received request: {}", request_path );
 
         let client = reqwest::Client::new();
-        let res = client.post( request_path )
+        println!( "Request headers: {:?}", req.headers().clone() );
+        let res = client.get( request_path )
             .headers( req.headers().clone() )
             .body( "poopy" )
             .send()
@@ -44,20 +45,45 @@ impl Endpoint for ProxyEndpoint {
         match res {
             Ok( result ) => {
 
-                println!("Response: {:?}", result );
 
                 let mut j = Response::default();
-                j.set_status( result.status() );
-                j.set_body( result.text().await.unwrap() );
+                
+                // j.set_status( result.status() );
+                // j.set_body( result.text().await.unwrap() );
+                // j.set_body( result.text().await.unwrap() );
+                // let headers = j.headers_mut();
+
+                // *headers = result.headers().clone();
+                
+                // println!("Response: {:?}", &result.text().await );
                     // status: result.status(),
                     // headers: result.headers().clone(),
                     // body: Body::from_string( result.text().await.unwrap() ),
                     // ..Default::default()
                     // j.head
+                // let l = result.extensions().clone_into( j.extensions_mut().get() );
+                j.extensions().clone_from( &result.extensions() );
+                // println!("Result extensions: {:?}", result.extensions() );
+                // j.headers().clone_from( &result.headers() );
+                // j.headers().extend( result.headers().get_all(key) );
+                result.headers().iter().for_each(|(key, val)| {
+                    j.headers_mut().insert( key, val.to_owned() );
+                });
+
+                j.set_status( result.status() );
+                j.set_version( result.version() );
+
+                j.set_body( result.bytes().await.unwrap() );
+
+                println!("j headers: {:?}", j.headers() );
+                // println!("Result status: {:?}", result.status() );
+                // println!("Result body: {:?}", result.bytes().await );
+                // println!("Result headers: {:?}", result );
                     
                 Ok( j )
             },
             Err( error ) => {
+                println!( "ERROR!" );
                 Err( Error::from_string( error.to_string(), error.status().unwrap_or( StatusCode::EXPECTATION_FAILED ) ) )
             }
         }
