@@ -1,10 +1,14 @@
 use poem::{
-    Endpoint, Request, Result, Response, Error, http::StatusCode, Body,
-    handler, web::Data
+    Request, Result, Response, Error, http::{ StatusCode, Method }, handler, web::Data, Body
 };
 
 #[handler]
-pub async fn proxy( req: &Request, target: Data<&String> ) -> Result<Response>
+pub async fn proxy( 
+    req: &Request, 
+    target: Data<&String>, 
+    method: Method,
+    body: Body,
+    ) -> Result<Response>
 {
     let target = target.to_owned();
 
@@ -19,11 +23,20 @@ pub async fn proxy( req: &Request, target: Data<&String> ) -> Result<Response>
 
     let client = reqwest::Client::new();
     println!( "Request headers: {:?}", req.headers().clone() );
-    let res = client.get( request_path )
-        .headers( req.headers().clone() )
-        .body( "poopy" )
-        .send()
-        .await;
+
+    let res = match method {
+        Method::GET => {
+            client.get( request_path )
+                .headers( req.headers().clone() )
+                .body( "body.into_bytes().await.unwrap()" )
+                .send()
+                .await
+        },
+        _ => {
+            println!( "Unknown method: {}", method );
+            return Err( Error::from_string( "Unknown method!", StatusCode::EXPECTATION_FAILED ) )
+        }
+    };
 
     match res {
         Ok( result ) => {
