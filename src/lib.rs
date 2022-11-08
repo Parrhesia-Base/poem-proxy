@@ -1,75 +1,67 @@
-use std::sync::Arc;
-
 use futures_util::{SinkExt, StreamExt};
 use poem::{
-    Request, Result, Response, Error, http::{ StatusCode, Method }, handler, web::{Data, websocket::{WebSocket, Message}}, Body, FromRequest, IntoResponse
+    Request, Result, Response, Error, http::{ StatusCode, Method, HeaderMap }, handler, web::{Data, websocket::{WebSocket}}, Body, FromRequest, IntoResponse
 };
 use tokio_tungstenite::connect_async;
+
 
 #[handler]
 pub async fn proxy( 
     req: &Request, 
+    headers: &HeaderMap,
     target: Data<&String>, 
     method: Method,
     body: Body,
     ) -> Result<Response>
 {
-    // Have to clone this here for some reason
-    let perm_target = target.clone();
-
     // If we need a websocket connection,
     if let Ok( ws ) = WebSocket::from_request_without_body( req ).await {
 
+        // Update to using websocket target
+        let perm_target = target.clone().replace( "https", "wss" ).replace( "http", "ws" );
+        
+        // Generate websocket request:
+        let mut w_request = http::Request::builder().uri( &perm_target );
+        for (key, value) in headers.iter() {
+            w_request = w_request.header( key, value ); 
+        }
+
+        // Start the websocket connection
         return Ok( 
             ws.on_upgrade(move |socket| async move {
                 let ( mut clientsink, mut clientstream ) = socket.split();
                 
                 // Start connection to server
-                // let ( mut serversocket, _ ) = connect_async( perm_target.clone() ).await.unwrap();
-                // let ( mut serversink, mut serverstream ) = serversocket.split();
+                println!( "Starting connection to {}", perm_target );
+                let ( mut serversocket, _ ) = connect_async( w_request.body(()).unwrap() ).await.unwrap();
+                let ( mut serversink, mut serverstream ) = serversocket.split();
 
                 // Relay client messages to the server we are proxying
                 tokio::spawn( async move {
+                    println!( "Client thread spawned" );
                     while let Some( Ok( msg ) ) = clientstream.next().await {
 
-                        // When a message is received,
-                        // if let Message::Text( text ) = &msg {
-
-                            // Echo it:
-                            // println!( "Websocket client sent: '{}'", text );
-
-                            // Send it right back!
-                            // if clientsink.send( Message::Text( format!("{}", text ) ) ).await.is_err() {
-                            //     break;
-                            // }
-
-                            // Forward it to the server
-                            // serversink.send(
-                            //     msg.into()
-                            // ).await.unwrap();
-                        // }
-
-
-
-                        // call( &msg ).await;
-                    }
+                        // When a message is received, forward it to the server
+                        println!( "Received client message!" );
+                        serversink.send(
+                            msg.into()
+                        ).await.unwrap();
+                    };
                 });
                 
                 // Relay server messages to the client
-                // tokio::spawn( async move {
-                //     while let Some( Ok( msg ) ) = serverstream.next().await {
-                //         // if let tokio_tungstenite::tungstenite::Message::Text( text ) = &msg {
-                //             clientsink.send(
-                //                 msg.into()
-                //             ).await.unwrap();
-                //         // }
-                //     }
-                // })
+                tokio::spawn( async move {
+                    println!( "Server thread spawned!" );
+                    while let Some( Ok( msg ) ) = serverstream.next().await {
+                        println!( "Received server message!" );
+                        clientsink.send(
+                            msg.into()
+                        ).await.unwrap();
+                    }
+                });
             }).into_response()
         );
     } else {
-        println!( "No websocket here!" );
-
         let target = target.to_owned();
 
         let path = req
@@ -79,10 +71,8 @@ pub async fn proxy(
             .trim_end_matches( "/" );
         
         let mut request_path = target.clone() + path.clone();
-        println!( "Received request: {}", request_path );
 
         let client = reqwest::Client::new();
-        println!( "Request headers: {:?}", req.headers().clone() );
 
         let res = match method {
             Method::GET => {
@@ -93,7 +83,6 @@ pub async fn proxy(
                     .await
             },
             _ => {
-                println!( "Unknown method: {}", method );
                 return Err( Error::from_string( "Unknown method!", StatusCode::EXPECTATION_FAILED ) )
             }
         };
@@ -108,17 +97,13 @@ pub async fn proxy(
                 j.set_status( result.status() );
                 j.set_version( result.version() );
                 j.set_body( result.bytes().await.unwrap() );
-                println!("j headers: {:?}", j.headers() );
                 Ok( j )
             },
             Err( error ) => {
-                println!( "ERROR!" );
                 Err( Error::from_string( error.to_string(), error.status().unwrap_or( StatusCode::EXPECTATION_FAILED ) ) )
             }
         }
     }
-    
-
 }
 
 pub fn add(left: usize, right: usize) -> usize {
