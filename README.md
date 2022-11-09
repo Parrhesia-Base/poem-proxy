@@ -1,7 +1,7 @@
 # poem-proxy
 This crate provides an endpoint for the [poem web framework](https://github.com/poem-web/poem) that serves files and requests from another server.
 
-### NOT YET FUNCTIONAL
+### SOMEWHAT FUNCTIONAL
 
 The main purpose of this is to enable rust backends to forward requests to other servers, such as a NodeJS server. For example, if you are developing an app with sveltekit, you miss out on a lot of its advantages if you serve it as a static site using the **StaticFilesEndpoint**. For one thing, you won't see automatic updates from HMR.
 

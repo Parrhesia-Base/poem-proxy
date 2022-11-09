@@ -1,7 +1,15 @@
 [package]
 name = "poem-proxy"
 version = "0.1.0"
+authors = ["Joey <josephameadows@gmail.com>"]
 edition = "2021"
+rust-version = "1.65.0"
+description = "A simple proxy endpoint compatible with the Poem web framework"
+license = "MIT"
+keywords = ["poem", "http", "proxy", "web", "async"]
+readme = "README.md"
+repository = "https://github.com/Parrhesia-Base/poem-proxy"
+categories = ["network-programming", "web-programming", "web-programming::http-server", "web-programming::websocket"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
