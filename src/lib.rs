@@ -1,8 +1,40 @@
-use futures_util::{SinkExt, StreamExt};
+//! Poem-proxy is a simple and easy-to-use proxy endpoint compatible with the
+//! Poem web framework. It supports the forwarding of http get and post requests
+//! as well as websockets right out of the box!
+//! 
+//! # Table of Contents
+//! 
+//! - [Quickstart](#quickstart)
+//! 
+//! # Quickstart
+//! This [Endpoint](poem::Endpoint) 
+//! 
+
+use futures_util::{ SinkExt, StreamExt };
 use poem::{
-    Request, Result, Response, Error, http::{ StatusCode, Method, HeaderMap }, handler, web::{Data, websocket::{WebSocket}}, Body, FromRequest, IntoResponse
+    Request, Result, Response, Error, handler, Body, FromRequest, IntoResponse, 
+    http::{ StatusCode, Method, HeaderMap },
+    web::{ Data, websocket::{ WebSocket } }
 };
 use tokio_tungstenite::connect_async;
+use tokio::sync::RwLock;
+use std::sync::Arc;
+
+/// ## The proxy config!
+pub struct ProxyConfig {
+    pub proxy_target: String,
+    pub web_secure: bool,
+    pub ws_secure: bool,
+}
+
+impl Default for ProxyConfig {
+    fn default() -> Self {
+        Self { 
+            proxy_target: "http://localhost:3000".into(),
+            web_secure: false,          ws_secure: false,
+        }
+    }
+}
 
 // The websocket-enabled proxy handler
 #[handler]
@@ -12,8 +44,8 @@ pub async fn proxy(
     target: Data<&String>, 
     method: Method,
     body: Body,
-    ) -> Result<Response>
-{
+    ) -> Result<Response> {
+
     // If we need a websocket connection,
     if let Ok( ws ) = WebSocket::from_request_without_body( req ).await {
 
@@ -32,38 +64,56 @@ pub async fn proxy(
                 let ( mut clientsink, mut clientstream ) = socket.split();
                 
                 // Start connection to server
-                // println!( "Starting connection to {}", perm_target );
                 let ( mut serversocket, _ ) = connect_async( w_request.body(()).unwrap() ).await.unwrap();
                 let ( mut serversink, mut serverstream ) = serversocket.split();
 
+                // Tie both threads so if one exits the other does too
+                let client_live = Arc::new( RwLock::new( true ) );
+                let server_live = client_live.clone();
+
                 // Relay client messages to the server we are proxying
                 tokio::spawn( async move {
-                    // println!( "Client thread spawned" );
                     while let Some( Ok( msg ) ) = clientstream.next().await {
 
                         // When a message is received, forward it to the server
-                        // println!( "Received client message!" );
-                        serversink.send(
-                            msg.into()
-                        ).await.unwrap();
+                        // Break the loop if there are errors
+                        match serversink.send( msg.into() ).await { 
+                            Err( _ ) => break,
+                            _ => {},
+                        };
+
+                        // Stop the connection if it is no longer live
+                        // let j = *connection_live.read().await;
+                        if !*client_live.read().await { break };
                     };
+
+                    // Stop the other thread that is paired with this one
+                    *client_live.write().await = false;
                 });
                 
                 // Relay server messages to the client
                 tokio::spawn( async move {
-                    // println!( "Server thread spawned!" );
                     while let Some( Ok( msg ) ) = serverstream.next().await {
-                        // println!( "Received server message!" );
-                        clientsink.send(
-                            msg.into()
-                        ).await.unwrap();
-                    }
+
+                        // When a server message is received, forward it to the
+                        // client, and break the loop if there are errors
+                        match clientsink.send( msg.into() ).await {
+                            Err( _ ) => break,
+                            _ => {},
+                        };
+
+                        // Stop the connection if it is no longer live
+                        if !*server_live.read().await { break };
+                    };
+
+                    // Stop the other thread that is paired with this one
+                    *server_live.write().await = false;
                 });
             }).into_response()
         );
     } 
     
-    // Not using websocket:
+    // Not using websocket (http/https):
     else {
         
         // Update the uri to point to the proxied server
@@ -80,9 +130,15 @@ pub async fn proxy(
                     .send()
                     .await
             },
+            Method::POST => {
+                client.post( request_uri )
+                    .headers( req.headers().clone() )
+                    .body( body.into_bytes().await.unwrap() )
+                    .send()
+                    .await
+            },
             _ => {
-                todo!();
-                // return Err( Error::from_string( "Unknown method!", StatusCode::EXPECTATION_FAILED ) )
+                return Err( Error::from_string( "Unsupported Method!", StatusCode::METHOD_NOT_ALLOWED ) )
             }
         };
 
@@ -90,28 +146,24 @@ pub async fn proxy(
         // including headers and the body of the response, among other things.
         match res {
             Ok( result ) => {
-                let mut j = Response::default();
-                j.extensions().clone_from( &result.extensions() );
+                let mut res = Response::default();
+                res.extensions().clone_from( &result.extensions() );
                 result.headers().iter().for_each(|(key, val)| {
-                    j.headers_mut().insert( key, val.to_owned() );
+                    res.headers_mut().insert( key, val.to_owned() );
                 });
-                j.set_status( result.status() );
-                j.set_version( result.version() );
-                j.set_body( result.bytes().await.unwrap() );
-                Ok( j )
+                res.set_status( result.status() );
+                res.set_version( result.version() );
+                res.set_body( result.bytes().await.unwrap() );
+                Ok( res )
             },
 
             // The request to the back-end server failed. Why?
             Err( error ) => {
-                Err( Error::from_string( error.to_string(), error.status().unwrap_or( StatusCode::EXPECTATION_FAILED ) ) )
+                Err( Error::from_string( error.to_string(), error.status().unwrap_or( StatusCode::BAD_GATEWAY ) ) )
             }
         }
     }
 }
-
-// pub fn add(left: usize, right: usize) -> usize {
-//     left + right
-// }
 
 #[cfg(test)]
 mod tests {
