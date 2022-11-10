@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/crates/d/poem-proxy?style=for-the-badge" alt="License">
   </a>
   <!-- Activate below when there is an actual release -->
-  <!-- <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/Parrhesia-Base/poem-proxy?color=purple&style=for-the-badge"/> -->
+  <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/Parrhesia-Base/poem-proxy?color=purple&style=for-the-badge"/>
 </p>
 
 # Development Roadmap
