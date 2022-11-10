@@ -1,6 +1,6 @@
 [package]
 name = "poem-proxy"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Joey <josephameadows@gmail.com>"]
 edition = "2021"
 rust-version = "1.65.0"
