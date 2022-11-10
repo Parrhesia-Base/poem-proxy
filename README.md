@@ -1,5 +1,5 @@
 <p style="text-align: center" align="center">
-  <h1 width="100%" align="center"> Poem Proxy </h1>
+  <img src="/repository/images/logo.png"/>
   <p>
     This crate provides an endpoint for the <a href="https://github.com/poem-web/poem">poem web framework</a> that serves files and requests from another server.
 </p>
