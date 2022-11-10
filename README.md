@@ -1,5 +1,5 @@
 <p style="text-align: center" align="center">
-  <img src="/images/logo.png?raw=true"  alt="Employee data" title="Employee Data title" height=500px />
+  <img src="/images/logo.png?raw=true"  alt="Employee data" title="Employee Data title" height=300px />
   <p>
     This crate provides an endpoint for the <a href="https://github.com/poem-web/poem">poem web framework</a> that serves files and requests from another server.
 </p>
