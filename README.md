@@ -1,21 +1,23 @@
 <p style="text-align: center" align="center">
-  <img src="/images/logo.png?raw=true"  alt="Employee data" title="Employee Data title" width=400px />
-  <p>
-    This crate provides an endpoint for the <a href="https://github.com/poem-web/poem">poem web framework</a> that serves files and requests from another server.
+  <a href="https://github.com/Parrhesia-Base/poem-proxy">
+    <img src="/images/logo.png?raw=true"  alt="Poem Proxy" title="Poem Proxy" width=400px />
+  </a>
+  <p align="center">
+    This crate provides an endpoint for the <a href="https://github.com/poem-web/poem">poem web framework</a> which transfers data to and from another server
 </p>
   <a href="#">
     <img src="https://img.shields.io/github/stars/Parrhesia-Base/poem-proxy?style=for-the-badge" alt="Number of Stars">
   </a>
-  <a href="#">
+  <a href="https://github.com/Parrhesia-Base/poem-proxy/issues">
     <img src="https://img.shields.io/github/issues/Parrhesia-Base/poem-proxy?style=for-the-badge" alt="Number of Issues">
   </a>
-  <a href="#">
+  <a href="https://docs.rs/poem-proxy/latest/poem_proxy/">
     <img src="https://img.shields.io/docsrs/poem-proxy/latest?style=for-the-badge" alt="License">
   </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/github/license/Parrhesia-Base/poem-proxy?style=for-the-badge" alt="License">
   </a>
-  <a href="https://opensource.org/licenses/MIT">
+  <a href="https://crates.io/crates/poem-proxy">
     <img src="https://img.shields.io/crates/d/poem-proxy?style=for-the-badge" alt="License">
   </a>
   <a href="https://crates.io/crates/poem-proxy">
@@ -24,7 +26,7 @@
 </p>
 
 # Development Roadmap
-While this project is in work, I will be following this development roadmap. In the end, poem-proxy will be a versatile service that is ready for your next web application.
+While this project is in work, I will be following this development roadmap. In the end, poem-proxy will be a versatile service that is ready for your next web application. It is not quite there yet - but it is on its way!
 
 - [ ] Create a proxy that can forward http requests to another server and send its response back
   - [X] Get requests
@@ -53,16 +55,19 @@ While this project is in work, I will be following this development roadmap. In 
 - [ ] Write comprehensive tests to ensure functionality is not lost
 - [ ] Write comprehensive documentation that shows clear examples of how to use the proxy
 
-As you can see, this proxy service is not yet fully functional. The items checked off have been tested and do work to some limited capacity. I have successfully used this proxy to bridge my Poem webserver to a Sveltekit webserver, though advanced functionality is still not there.
+As you can see, this proxy service is not yet fully functional. The items checked off have been tested and do work to some limited capacity.
 
-# Documentation
-Documentation is not yet finished, but can be found [here](). Just remember that it's a work-in-progress. [Parhesia](https://github.com/Parrhesia-Base/Parrhesia) is nowhere near completion, but you can check out that repository to see how this proxy endpoint is currently being used.
+# About
+### Purpose
+Poem-proxy is a sub-project of [Parrhesia](https://github.com/Parrhesia-Base/Parrhesia). It is meant to facilitate a seamless user experience for front-end development without needing to route internet traffic to multiple backend servers. Instead, all connections can be sent to the Rust backend, which will sort through and forward any necessary requests.
 
-# Purpose
+Parrhesia will officially support Sveltekit as the front-end framework of choice, and even today this proxy endpoint can handle all its basic functionality. Even Hot-Module-Reloading, which is a massive boost to the development experience.
 
-The main purpose of this is to enable rust backends to forward requests to other servers, such as a NodeJS server. For example, if you are developing an app with sveltekit, you miss out on a lot of its advantages if you serve it as a static site using the **StaticFilesEndpoint**. For one thing, you won't see automatic updates from HMR.
+### Documentation
+Documentation is also in work, and can be found [here](https://docs.rs/poem-proxy/latest/poem_proxy). Just remember that it's a work-in-progress. [Parhesia](https://github.com/Parrhesia-Base/Parrhesia) is nowhere near completion, but you can check out that repository to see how this endpoint is currently being used.
 
-Even if you eventually want to use the **StaticFilesEndpoint**, this can be useful for app development before moving over to the static generation.
+### Contributing
+Due to the small scale of this project, code contributions really aren't currently needed. That being said, I am in need of people knowledgable with proxies to review my work and ensure it is correct and follows today's proxy standards. In addition, please create issues if you come across any bugs or have any other ideas on how this proxy can be improved.
 
-## License
-This code is licensed under the [MIT License](https://github.com/Parresia-Web/poem-proxy/blob/main/LICENSE). If you make improvements, please consider contributing them back to main. You are completely free to use this code and this library for any purpose.
+### License
+This code is licensed under the [MIT License](https://github.com/Parresia-Web/poem-proxy/blob/main/LICENSE). If you make improvements, please consider contributing them back to main. You are completely free to use this code and this library for any purpose. Anything you contribute shall be licensed as MIT, without additional terms or conditions.
