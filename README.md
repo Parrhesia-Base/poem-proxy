@@ -54,6 +54,7 @@ While this project is in work, I will be following this development roadmap. In 
 - [ ] Ensure that proxy is implemented properly with non-advocate code review
 - [ ] Write comprehensive tests to ensure functionality is not lost
 - [ ] Write comprehensive documentation that shows clear examples of how to use the proxy
+- [ ] Set up CI to ensure codebase stays relevant even after development is complete
 
 As you can see, this proxy service is not yet fully functional. The items checked off have been tested and do work to some limited capacity.
 
