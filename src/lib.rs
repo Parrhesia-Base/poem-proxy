@@ -22,17 +22,48 @@ use std::sync::Arc;
 
 /// ## The proxy config!
 pub struct ProxyConfig {
+
+    /// This is the url where requests and websocket connections are to be
+    /// forwarded to. Port numbers are supported here, though they may be
+    /// broken off into their own parameter in the future.
     pub proxy_target: String,
+
+    /// Whether to use https (true) or http for requests to the proxied server.
     pub web_secure: bool,
+
+    /// Whether to use wss (true) or ws for websocket requests to the proxied server.
     pub ws_secure: bool,
+
+    /// Whether or not nesting should be supported when forwarding requests
+    /// to the server.
+    pub support_nesting: bool,
 }
 
 impl Default for ProxyConfig {
+
+    /// Returns the default value for the [ProxyConfig], which corresponds
+    /// to the following:
+    /// > `proxy_target: "http://localhost:3000"`
+    /// 
+    /// > `web_secure: false`
+    /// 
+    /// > `ws_secure: false`
+    /// 
+    /// > `support_nesting: false`
     fn default() -> Self {
         Self { 
             proxy_target: "http://localhost:3000".into(),
-            web_secure: false,          ws_secure: false,
+            web_secure: false, ws_secure: false, support_nesting: false
         }
+    }
+}
+
+/// ## The proxy config implementation
+impl ProxyConfig {
+
+    /// Contains the get_request_uri function
+    pub fn get_request_uri( &self ) -> String {
+        "Hi there".into()
     }
 }
 
