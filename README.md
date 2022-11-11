@@ -1,5 +1,5 @@
 <p style="text-align: center" align="center">
-  <img src="/images/logo.png?raw=true"  alt="Employee data" title="Employee Data title" height=300px />
+  <img src="/images/logo.png?raw=true"  alt="Employee data" title="Employee Data title" width=400px />
   <p>
     This crate provides an endpoint for the <a href="https://github.com/poem-web/poem">poem web framework</a> that serves files and requests from another server.
 </p>
@@ -18,8 +18,9 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/crates/d/poem-proxy?style=for-the-badge" alt="License">
   </a>
-  <!-- Activate below when there is an actual release -->
-  <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/Parrhesia-Base/poem-proxy?color=purple&style=for-the-badge"/>
+  <a href="https://crates.io/crates/poem-proxy">
+    <img alt="Published Version" src="https://img.shields.io/crates/v/poem-proxy?style=for-the-badge"/>
+  </a>
 </p>
 
 # Development Roadmap
