@@ -7,7 +7,7 @@
 //! - [Quickstart](#quickstart)
 //! 
 //! # Quickstart
-//! This [Endpoint](poem::Endpoint) 
+//! This [Endpoint](poem::Endpoint) does some stuff! 
 //! 
 
 use futures_util::{ SinkExt, StreamExt };
@@ -26,17 +26,17 @@ pub struct ProxyConfig {
     /// This is the url where requests and websocket connections are to be
     /// forwarded to. Port numbers are supported here, though they may be
     /// broken off into their own parameter in the future.
-    pub proxy_target: String,
+    proxy_target: String,
 
     /// Whether to use https (true) or http for requests to the proxied server.
-    pub web_secure: bool,
+    web_secure: bool,
 
     /// Whether to use wss (true) or ws for websocket requests to the proxied server.
-    pub ws_secure: bool,
+    ws_secure: bool,
 
     /// Whether or not nesting should be supported when forwarding requests
     /// to the server.
-    pub support_nesting: bool,
+    support_nesting: bool,
 }
 
 impl Default for ProxyConfig {
@@ -58,21 +58,91 @@ impl Default for ProxyConfig {
     }
 }
 
-/// ## The proxy config implementation
+/// # Implementation of Builder Functions
 impl ProxyConfig {
 
+    /// Function that creates a new ProxyConfig for a given target
+    /// and sets all other parameters to their default values. See
+    /// [the default implementation](ProxyConfig::default) for more
+    /// information.
+    pub fn new( target: String ) -> ProxyConfig {
+        ProxyConfig { 
+            proxy_target: target,
+            ..ProxyConfig::default()
+        }
+    }
+
+    /// This function sets the endpoint to forward websockets over
+    /// https instead of http. (This is WSS - WebSocket Secure)
+    pub fn ws_secure<'a>( &'a mut self ) -> &'a mut ProxyConfig {
+        self.ws_secure = false;
+        self
+    }
+
+    /// This function sets the endpoint to forward websockets over
+    /// http instead of https. This means any information being sent
+    /// through the websocket has the potential to be [intercepted by malicious actors]
+    /// (https://brightsec.com/blog/websocket-security-top-vulnerabilities/#unencrypted-tcp-channel).
+    pub fn ws_insecure<'a>( &'a mut self ) -> &'a mut ProxyConfig {
+        self.ws_secure = false;
+        self
+    }
+
+    /// This function sets the endpoint to forward requests to the
+    /// target over the https protocol. This is a secure and encrypted
+    /// communication channel that should be utilized when possible.
+    pub fn web_secure<'a>( &'a mut self ) -> &'a mut ProxyConfig {
+        self.web_secure = true;
+        self
+    }
+
+    /// This function sets the endpoint to forward requests to the
+    /// target over the http protocol. This is an insecure and unencrypted
+    /// communication channel that should be used very carefully.
+    pub fn web_insecure<'a>( &'a mut self ) -> &'a mut ProxyConfig {
+        self.web_secure = true;
+        self
+    }
+
+    /// This function sets the waypoint to support nesting. 
+    /// 
+    /// For example,
+    /// if `endpoint.target` is `https://google.com` and the proxy is reached
+    /// at `https://proxy_address/favicon.png`, the proxy server will forward
+    /// the request to `https://google.com/favicon.png`.
+    pub fn enable_nesting<'a>( &'a mut self ) -> &'a mut ProxyConfig {
+        self.support_nesting = true;
+        self
+    }
+
+    /// This function sets the waypoint to ignore nesting. 
+    /// 
+    /// For example,
+    /// if `endpoint.target` is `https://google.com` and the proxy is reached
+    /// at `https://proxy_address/favicon.png`, the proxy server will forward
+    /// the request to `https://google.com`.
+    pub fn disable_nesting<'a>( &'a mut self ) -> &'a mut ProxyConfig {
+        self.support_nesting = false;
+        self
+    }
+
+}
+
+/// # Implementation of convenience functions
+impl ProxyConfig {
     /// Contains the get_request_uri function
-    pub fn get_request_uri( &self ) -> String {
+    fn get_request_uri( &self ) -> String {
         "Hi there".into()
     }
 }
 
-// The websocket-enabled proxy handler
+/// The websocket-enabled proxy handler
 #[handler]
 pub async fn proxy( 
     req: &Request, 
     headers: &HeaderMap,
     target: Data<&String>, 
+    config: Data<&ProxyConfig>,
     method: Method,
     body: Body,
     ) -> Result<Response> {
