@@ -37,10 +37,10 @@ While this project is in work, I will be following this development roadmap. In 
   - [ ] Ensure all necessary information is captured
 - [X] Add websocket support to the proxy endpoint
   - [ ] Ensure all necessary information is captured
-- [ ] Allow finer configuration of the proxy endpoint
-  - [ ] Http/Https
-  - [ ] Ws/Wss
-  - [ ] Forward to different target servers
+- [X] Allow finer configuration of the proxy endpoint
+  - [X] Http/Https
+  - [X] Ws/Wss
+  - [X] Forward to different target servers
 - [ ] Enable a templating engine that will allow the proxy to fill information in that the proxied server might not know
   - [ ] Templating for request
     - [ ] Headers
